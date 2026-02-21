@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html class="dark" lang="ko">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>소비 및 자산 관리 (고급형 다크 테마)</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Pretendard:wght@100;200;300;400;500;600;700;800&amp;display=swap"
+        rel="stylesheet" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet" />
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "premium-blue": "#1E3A8A",
+                        "deep-charcoal": "#0F1115",
+                        "midnight-blue": "#0A0F1D",
+                        "accent-neon": "#38BDF8",
+                    },
+                    fontFamily: {
+                        "sans": ["Pretendard", "sans-serif"]
+                    },
+                },
+            },
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer base {
+            body {
+                @apply bg-deep-charcoal text-slate-100 antialiased;
+                font-family: 'Pretendard', sans-serif;
+            }
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(25px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
+        }
+        .dark-gradient-bg {
+            background: radial-gradient(circle at 50% -20%, #1A2235 0%, #0F1115 100%);
+        }
+        .neon-glow {
+            filter: drop-shadow(0 0 8px rgba(56, 189, 248, 0.6));
+        }
+        .nav-blur {
+            background: rgba(15, 17, 21, 0.85);
+            backdrop-filter: blur(20px);
+        }
+    </style>
+    <style>
+        body {
+            min-height: max(884px, 100dvh);
+        }
+    </style>
+</head>
+
+<body class="min-h-screen pb-32 dark-gradient-bg relative">
+    <header
+        class="sticky top-0 z-30 px-6 pt-14 pb-6 flex items-center justify-between nav-blur border-b border-white/5">
+        <div class="flex items-center gap-4">
+            <div class="size-11 rounded-2xl overflow-hidden ring-1 ring-white/20 p-0.5 bg-white/5">
+                <img alt="User Profile" class="w-full h-full object-cover rounded-[14px]"
+                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuAJkzSgVvS0qr-cNT5ZMf9oaq1syvcuGJDlJRWcZB7hu4IFYgRsDXRqV_QRRkN2shGqZ4twMBeY2kSwARk8dPCzRLahuqObL9d3UtAOMnKp83ZrNRwFommOYMyz82rLtuz8v59K3FgZuMLBd-G7WL_XY50zMx98TfopczgGfdVcFc8RMWZW5GvuQbc88CWb8gQe-dUcPOaQZCV8V6SkSVexFSPWKX-p4nFDaJbaSI8V1UwY_kIDzFn65ZXZd9P8SLaNG1JOJI2LRkDy" />
+            </div>
+            <div>
+                <p class="text-[10px] text-accent-neon font-bold tracking-[0.15em] mb-0.5 opacity-90">PREMIUM BLACK</p>
+                <h1 class="text-lg font-bold tracking-tight text-white">김리버 님</h1>
+            </div>
+        </div>
+        <div class="flex gap-2">
+            <button
+                class="size-11 flex items-center justify-center rounded-2xl glass-card text-slate-300 hover:text-white transition-all">
+                <span class="material-symbols-outlined text-[22px]">notifications</span>
+            </button>
+        </div>
+    </header>
+    <main class="px-6 space-y-8 mt-6">
+        <section>
+            <div class="glass-card rounded-[2.5rem] p-8 relative overflow-hidden">
+                <div class="absolute top-0 right-0 p-6">
+                    <span
+                        class="text-[10px] font-bold text-slate-500 tracking-widest uppercase opacity-60">REPORT</span>
+                </div>
+                <div class="flex flex-col items-center">
+                    <h2 class="text-sm font-semibold text-slate-300 mb-8">오늘의 지출 현황</h2>
+                    <div class="relative size-64 flex items-center justify-center">
+                        <svg class="size-full">
+                            <circle class="text-white/5" cx="128" cy="128" fill="transparent" r="115"
+                                stroke="currentColor" stroke-width="1.5"></circle>
+                            <circle class="text-accent-neon neon-glow" cx="128" cy="128" fill="transparent" r="115"
+                                stroke="currentColor" stroke-dasharray="722" stroke-dashoffset="180"
+                                stroke-linecap="round" stroke-width="3"
+                                style="transform: rotate(-90deg); transform-origin: 50% 50%;"></circle>
+                        </svg>
+                        <div class="absolute inset-0 flex flex-col items-center justify-center text-center">
+                            <span class="text-[11px] text-slate-400 font-bold tracking-widest mb-1">REMAINING</span>
+                            <span class="text-4xl font-light tracking-tight text-white mb-1">₩24,500</span>
+                            <div class="h-[2px] w-6 bg-accent-neon/40 my-2 rounded-full"></div>
+                            <span class="text-[10px] text-slate-300 font-medium">일일 목표 대비 75%</span>
+                        </div>
+                    </div>
+                    <div class="w-full mt-10 grid grid-cols-2 gap-3">
+                        <div class="glass-card rounded-2xl p-4 text-center">
+                            <p class="text-[10px] text-slate-400 font-bold tracking-tighter mb-1 uppercase">일일 한도</p>
+                            <p class="text-sm font-semibold text-white">₩100,000</p>
+                        </div>
+                        <div class="glass-card rounded-2xl p-4 text-center">
+                            <p class="text-[10px] text-slate-400 font-bold tracking-tighter mb-1 uppercase">총 지출</p>
+                            <p class="text-sm font-semibold text-white">₩75,500</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <section class="space-y-6">
+            <div class="flex items-center justify-between px-1">
+                <h3 class="text-lg font-bold tracking-tight text-white">지출 내역</h3>
+                <button class="text-xs font-bold text-accent-neon hover:underline flex items-center gap-1">
+                    전체보기 <span class="material-symbols-outlined text-sm">chevron_right</span>
+                </button>
+            </div>
+            <div class="space-y-3">
+                <div
+                    class="glass-card rounded-2xl p-4 flex items-center justify-between group hover:bg-white/10 transition-all border-none">
+                    <div class="flex items-center gap-4">
+                        <div
+                            class="size-12 rounded-2xl bg-white/[0.05] flex items-center justify-center text-accent-neon group-hover:bg-accent-neon/10 transition-colors">
+                            <span class="material-symbols-outlined text-[24px]">coffee</span>
+                        </div>
+                        <div>
+                            <p class="text-sm font-bold text-white mb-0.5">스타벅스</p>
+                            <p class="text-[11px] text-slate-400 font-medium">식비 · 오전 08:45</p>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-sm font-bold text-white tracking-tight">₩5,500</p>
+                        <p class="text-[10px] text-slate-500 font-medium mt-0.5">삼성카드</p>
+                    </div>
+                </div>
+                <div
+                    class="glass-card rounded-2xl p-4 flex items-center justify-between group hover:bg-white/10 transition-all border-none">
+                    <div class="flex items-center gap-4">
+                        <div
+                            class="size-12 rounded-2xl bg-white/[0.05] flex items-center justify-center text-accent-neon group-hover:bg-accent-neon/10 transition-colors">
+                            <span class="material-symbols-outlined text-[24px]">directions_bus</span>
+                        </div>
+                        <div>
+                            <p class="text-sm font-bold text-white mb-0.5">대중교통</p>
+                            <p class="text-[11px] text-slate-400 font-medium">교통 · 오전 09:15</p>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-sm font-bold text-white tracking-tight">₩1,250</p>
+                        <p class="text-[10px] text-slate-500 font-medium mt-0.5">티머니</p>
+                    </div>
+                </div>
+                <div
+                    class="glass-card rounded-2xl p-4 flex items-center justify-between group hover:bg-white/10 transition-all border-none">
+                    <div class="flex items-center gap-4">
+                        <div
+                            class="size-12 rounded-2xl bg-white/[0.05] flex items-center justify-center text-accent-neon group-hover:bg-accent-neon/10 transition-colors">
+                            <span class="material-symbols-outlined text-[24px]">shopping_bag</span>
+                        </div>
+                        <div>
+                            <p class="text-sm font-bold text-white mb-0.5">현대백화점</p>
+                            <p class="text-[11px] text-slate-400 font-medium">쇼핑 · 오후 12:30</p>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-sm font-bold text-white tracking-tight">₩68,750</p>
+                        <p class="text-[10px] text-slate-500 font-medium mt-0.5">현대카드</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+    <!-- 지출 추가 모달 -->
+    <div id="add-expense-modal"
+        class="fixed inset-0 z-[100] hidden items-end justify-center sm:items-center p-4 sm:p-6">
+        <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="closeModal()"></div>
+        <div
+            class="glass-card w-full max-w-lg rounded-t-[2.5rem] sm:rounded-[2.5rem] p-8 relative animate-in slide-in-from-bottom duration-300">
+            <div class="flex items-center justify-between mb-8">
+                <h3 class="text-xl font-bold text-white">지출 내역 추가</h3>
+                <button onclick="closeModal()"
+                    class="size-10 flex items-center justify-center rounded-full hover:bg-white/10 text-slate-400">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+
+            <form id="expense-form" class="space-y-6">
+                <div class="space-y-2">
+                    <label class="text-xs font-bold text-slate-400 uppercase tracking-widest pl-1">지출처</label>
+                    <input type="text" id="expense-title" required placeholder="예: 스타벅스, 점심 식사"
+                        class="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-white placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-accent-neon/50 transition-all">
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="space-y-2">
+                        <label class="text-xs font-bold text-slate-400 uppercase tracking-widest pl-1">금액 (원)</label>
+                        <input type="number" id="expense-amount" required placeholder="0"
+                            class="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-white placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-accent-neon/50 transition-all">
+                    </div>
+                    <div class="space-y-2">
+                        <label class="text-xs font-bold text-slate-400 uppercase tracking-widest pl-1">카테고리</label>
+                        <select id="expense-category"
+                            class="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-white focus:outline-none focus:ring-2 focus:ring-accent-neon/50 transition-all appearance-none cursor-pointer">
+                            <option value="식비">식비</option>
+                            <option value="교통">교통</option>
+                            <option value="쇼핑">쇼핑</option>
+                            <option value="취미">취미</option>
+                            <option value="기타">기타</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="space-y-2">
+                    <label class="text-xs font-bold text-slate-400 uppercase tracking-widest pl-1">결제 수단</label>
+                    <input type="text" id="expense-method" placeholder="예: 삼성카드, 현금"
+                        class="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-white placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-accent-neon/50 transition-all">
+                </div>
+
+                <button type="submit"
+                    class="w-full bg-accent-neon text-midnight-blue font-bold py-4 rounded-2xl hover:brightness-110 active:scale-[0.98] transition-all shadow-lg shadow-accent-neon/20">
+                    저장하기
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // --- 데이터 저장소 (LocalStorage) ---
+        const STORAGE_KEY = 'expense_tracker_data';
+        const DAILY_LIMIT = 100000;
+
+        let state = {
+            expenses: [],
+            dailyLimit: DAILY_LIMIT
+        };
+
+        // 데이터 로드
+        function loadData() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (saved) {
+                state = JSON.parse(saved);
+            } else {
+                // 초기 샘플 데이터
+                state.expenses = [
+                    { id: 1, title: '스타벅스', amount: 5500, category: '식비', method: '삼성카드', time: '오전 08:45', date: new Date().toLocaleDateString() },
+                    { id: 2, title: '대중교통', amount: 1250, category: '교통', method: '티머니', time: '오전 09:15', date: new Date().toLocaleDateString() },
+                    { id: 3, title: '현대백화점', amount: 68750, category: '쇼핑', method: '현대카드', time: '오후 12:30', date: new Date().toLocaleDateString() }
+                ];
+                saveData();
+            }
+        }
+
+        // 데이터 저장
+        function saveData() {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+            renderApp();
+        }
+
+        // --- UI 렌더링 ---
+        function renderApp() {
+            renderDashboard();
+            renderExpenseList();
+        }
+
+        function renderDashboard() {
+            const totalExpense = state.expenses.reduce((sum, exp) => sum + exp.amount, 0);
+            const remaining = Math.max(0, state.dailyLimit - totalExpense);
+            const percent = Math.min(100, Math.round((totalExpense / state.dailyLimit) * 100));
+
+            // 금액 업데이트
+            document.querySelector('.text-4xl').textContent = `₩${remaining.toLocaleString()}`;
+            document.querySelector('.text-[10px].text-slate-300').textContent = `일일 목표 대비 ${percent}%`;
+            document.querySelector('.grid.grid-cols-2 .glass-card:last-child p:last-child').textContent = `₩${totalExpense.toLocaleString()}`;
+
+            // 원형 진행 바 업데이트
+            const circle = document.querySelector('circle.text-accent-neon');
+            const radius = 115;
+            const circumference = 2 * Math.PI * radius;
+            const offset = circumference - (percent / 100) * circumference;
+            circle.style.strokeDashoffset = offset;
+        }
+
+        function renderExpenseList() {
+            const container = document.querySelector('.space-y-3');
+            container.innerHTML = '';
+
+            const iconMap = {
+                '식비': 'coffee',
+                '교통': 'directions_bus',
+                '쇼핑': 'shopping_bag',
+                '취미': 'sports_esports',
+                '기타': 'sell'
+            };
+
+            state.expenses.slice().reverse().forEach(exp => {
+                const item = document.createElement('div');
+                item.className = 'glass-card rounded-2xl p-4 flex items-center justify-between group hover:bg-white/10 transition-all border-none relative';
+                item.innerHTML = `
+                <div class="flex items-center gap-4">
+                    <div class="size-12 rounded-2xl bg-white/[0.05] flex items-center justify-center text-accent-neon group-hover:bg-accent-neon/10 transition-colors">
+                        <span class="material-symbols-outlined text-[24px]">${iconMap[exp.category] || 'sell'}</span>
+                    </div>
+                    <div>
+                        <p class="text-sm font-bold text-white mb-0.5">${exp.title}</p>
+                        <p class="text-[11px] text-slate-400 font-medium">${exp.category} · ${exp.time}</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-4">
+                    <div class="text-right">
+                        <p class="text-sm font-bold text-white tracking-tight">₩${exp.amount.toLocaleString()}</p>
+                        <p class="text-[10px] text-slate-500 font-medium mt-0.5">${exp.method}</p>
+                    </div>
+                    <button onclick="deleteExpense(${exp.id})" class="opacity-0 group-hover:opacity-100 size-8 flex items-center justify-center rounded-full hover:bg-red-500/20 text-red-400 transition-all">
+                        <span class="material-symbols-outlined text-sm">delete</span>
+                    </button>
+                </div>
+            `;
+                container.appendChild(item);
+            });
+        }
+
+        // --- 이벤트 핸들러 ---
+        const modal = document.getElementById('add-expense-modal');
+        const form = document.getElementById('expense-form');
+        const addBtn = document.querySelector('.fixed.bottom-32 button');
+
+        addBtn.addEventListener('click', () => {
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        });
+
+        function closeModal() {
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+            form.reset();
+        }
+
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+
+            const now = new Date();
+            const newExpense = {
+                id: Date.now(),
+                title: document.getElementById('expense-title').value,
+                amount: parseInt(document.getElementById('expense-amount').value),
+                category: document.getElementById('expense-category').value,
+                method: document.getElementById('expense-method').value || '기타',
+                time: now.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', hour12: true }),
+                date: now.toLocaleDateString()
+            };
+
+            state.expenses.push(newExpense);
+            saveData();
+            closeModal();
+        });
+
+        function deleteExpense(id) {
+            if (confirm('이 지출 내역을 삭제하시겠습니까?')) {
+                state.expenses = state.expenses.filter(exp => exp.id !== id);
+                saveData();
+            }
+        }
+
+        // 네비게이션 버튼 예시 알림
+        document.querySelectorAll('nav a').forEach(nav => {
+            nav.addEventListener('click', (e) => {
+                e.preventDefault();
+                const text = nav.querySelector('span:last-child').textContent;
+                if (text !== '자산') {
+                    alert(`${text} 기능은 준비 중입니다!`);
+                }
+            });
+        });
+
+        // 초기 실행
+        loadData();
+        renderApp();
+    </script>
+
+</body>
+
+</html>

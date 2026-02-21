@@ -1,0 +1,1159 @@
+<!DOCTYPE html>
+<html class="dark" lang="ko">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Platform Pro - Master Edition</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@100;200;300;400;500;600;700;800&display=swap"
+        rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+        rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "premium-blue": "#1E4FF0",
+                        "deep-charcoal": "#0B0C10",
+                        "accent-neon": "#00F2FF",
+                        "admin-gold": "#FFD700",
+                        "income-green": "#22C55E",
+                        "expense-red": "#F43F5E",
+                        "schedule-purple": "#A855F7"
+                    },
+                    fontFamily: { "sans": ["Pretendard", "sans-serif"] },
+                },
+            },
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer base {
+            body { @apply bg-deep-charcoal text-slate-100 antialiased overflow-x-hidden; font-family: 'Pretendard', sans-serif; }
+            .dark body { @apply bg-deep-charcoal text-slate-100; }
+            html:not(.dark) body { @apply bg-slate-50 text-slate-900; }
+        }
+        .glass-card {
+            @apply border border-white/[0.08] shadow-2xl transition-colors duration-500;
+        }
+        .dark .glass-card { @apply bg-white/[0.03] border-white/[0.08]; }
+        html:not(.dark) .glass-card { @apply bg-white border-slate-200 shadow-xl; }
+
+        .dark .text-theme-base { @apply text-white; }
+        html:not(.dark) .text-theme-base { @apply text-slate-900; }
+
+        .dark .text-theme-muted { @apply text-slate-500; }
+        html:not(.dark) .text-theme-muted { @apply text-slate-400; }
+        .nav-active {
+            @apply text-accent-neon scale-110;
+        }
+        .tab-btn-active {
+            @apply bg-accent-neon text-deep-charcoal shadow-lg shadow-accent-neon/20;
+        }
+        html:not(.dark) .tab-btn-active {
+            @apply bg-premium-blue text-white shadow-premium-blue/20;
+        }
+
+        /* 텍스트 색상 전역 유틸리티 */
+        .text-theme-base { color: var(--text-base); }
+        .text-theme-muted { color: var(--text-muted); }
+        .custom-scrollbar::-webkit-scrollbar { display: none; }
+        .tab-btn-active {
+            @apply bg-accent-neon text-deep-charcoal font-black ring-4 ring-accent-neon/20;
+        }
+        @keyframes slideIn {
+            from { transform: translateX(20px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        .animate-slide { animation: slideIn 0.3s ease-out forwards; }
+    </style>
+</head>
+
+<body class="min-h-screen">
+
+    <!-- 1. 로그인/회원가입 화면 -->
+    <div id="auth-screen"
+        class="fixed inset-0 z-[200] flex flex-col items-center justify-center px-10 bg-[radial-gradient(circle_at_top,_#1a1b26_0%,_#0b0c10_100%)] transition-all duration-500">
+        <div
+            class="size-24 bg-accent-neon/10 rounded-[2.5rem] flex items-center justify-center mb-10 border border-accent-neon/30 shadow-[0_0_50px_rgba(0,242,255,0.15)]">
+            <span class="material-symbols-outlined text-5xl text-accent-neon">view_in_ar</span>
+        </div>
+        <h1 class="text-4xl font-black tracking-tighter mb-4">PLATFORM PRO</h1>
+        <p class="text-slate-500 text-sm mb-12 text-center leading-relaxed">자산부터 일정까지, 한곳에서 완벽하게.<br><span
+                class="text-accent-neon/80">당신의 비즈니스를 위한 프리미엄 솔루션</span></p>
+
+        <div id="auth-form-container" class="w-full max-w-sm space-y-4">
+            <div class="space-y-2">
+                <input type="email" id="auth-email"
+                    class="w-full bg-white/5 border border-white/10 rounded-2xl p-5 text-white focus:ring-2 focus:ring-accent-neon/50 outline-none transition-all"
+                    placeholder="이메일">
+                <input type="password" id="auth-password"
+                    class="w-full bg-white/5 border border-white/10 rounded-2xl p-5 text-white focus:ring-2 focus:ring-accent-neon/50 outline-none transition-all"
+                    placeholder="비밀번호">
+            </div>
+            <div id="auth-buttons" class="pt-6 grid grid-cols-1 gap-3">
+                <button onclick="App.auth.login()"
+                    class="w-full bg-gradient-to-r from-accent-neon to-premium-blue text-deep-charcoal font-black py-5 rounded-2xl shadow-xl active:scale-95 transition-all">접속하기</button>
+                <button onclick="App.ui.toggleAuthMode(true)"
+                    class="w-full bg-white/5 text-slate-400 font-bold py-4 rounded-2xl hover:bg-white/10 active:scale-95 transition-all text-xs uppercase tracking-widest">새
+                    계정 만들기</button>
+            </div>
+            <div id="register-buttons" class="hidden pt-6 grid grid-cols-1 gap-3">
+                <button onclick="App.auth.register()"
+                    class="w-full bg-premium-blue text-white font-black py-5 rounded-2xl shadow-xl active:scale-95 transition-all">회원가입
+                    완료</button>
+                <button onclick="App.ui.toggleAuthMode(false)"
+                    class="w-full bg-white/5 text-slate-400 font-bold py-4 rounded-2xl hover:bg-white/10 active:scale-95 transition-all text-xs uppercase tracking-widest">기존
+                    계정으로 로그인</button>
+            </div>
+        </div>
+        <p class="mt-10 text-[11px] text-slate-600 uppercase tracking-widest font-bold">Secure Connection Guaranteed</p>
+    </div>
+
+    <!-- 2. 메인 어플리케이션 레이아웃 -->
+    <div id="main-app" class="hidden flex flex-col min-h-screen opacity-0 transition-opacity duration-700">
+        <!-- 프리미엄 헤더 -->
+        <header
+            class="sticky top-0 z-50 px-6 pt-14 pb-6 flex items-center justify-between bg-deep-charcoal/80 backdrop-blur-xl border-b border-white/5">
+            <div class="flex items-center gap-4">
+                <div
+                    class="size-11 rounded-2xl bg-gradient-to-br from-accent-neon to-premium-blue p-0.5 shadow-lg relative">
+                    <img id="profile-img" class="w-full h-full object-cover rounded-[14px]"
+                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuAJkzSgVvS0qr-cNT5ZMf9oaq1syvcuGJDlJRWcZB7hu4IFYgRsDXRqV_QRRkN2shGqZ4twMBeY2kSwARk8dPCzRLahuqObL9d3UtAOMnKp83ZrNRwFommOYMyz82rLtuz8v59K3FgZuMLBd-G7WL_XY50zMx98TfopczgGfdVcFc8RMWZW5GvuQbc88CWb8gQe-dUcPOaQZCV8V6SkSVexFSPWKX-p4nFDaJbaSI8V1UwY_kIDzFn65ZXZd9P8SLaNG1JOJI2LRkDy" />
+                    <div id="admin-badge"
+                        class="hidden absolute -top-1 -right-1 size-4 bg-admin-gold rounded-full border-2 border-deep-charcoal">
+                    </div>
+                </div>
+                <div>
+                    <p id="view-title"
+                        class="text-[10px] text-accent-neon font-black tracking-[0.2em] mb-0.5 uppercase">DASHBOARD</p>
+                    <h1 id="user-greeting" class="text-lg font-bold tracking-tight text-white line-clamp-1">반갑습니다, 사용자님
+                    </h1>
+                </div>
+            </div>
+            <div class="flex items-center gap-3">
+                <button onclick="App.auth.logout()"
+                    class="size-11 flex items-center justify-center rounded-2xl glass-card text-slate-400 hover:text-expense-red transition-all">
+                    <span class="material-symbols-outlined text-[20px]">power_settings_new</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- 스크롤 컨텐츠 -->
+        <main id="app-viewport" class="flex-1 px-6 pt-8 pb-40 overflow-y-auto custom-scrollbar">
+            <!-- 동적 컨텐츠 렌더링 영역 -->
+        </main>
+
+        <!-- 유니버셜 플로팅 버튼 -->
+        <div id="fab-layer" class="fixed inset-0 z-40 hidden">
+            <div class="absolute inset-0 bg-deep-charcoal/90 backdrop-blur-sm" onclick="App.ui.toggleFab(false)"></div>
+            <div id="fab-options" class="absolute bottom-40 right-6 flex flex-col items-end gap-4">
+                <!-- 하단 스크립트에서 동적으로 주입됨 -->
+            </div>
+        </div>
+        <button id="fab-main" onclick="App.ui.toggleFab()"
+            class="fixed bottom-32 right-6 z-50 size-16 bg-gradient-to-br from-accent-neon to-premium-blue text-deep-charcoal rounded-[2rem] shadow-[0_15px_35px_rgba(0,242,255,0.4)] flex items-center justify-center active:scale-90 transition-all">
+            <span id="fab-icon" class="material-symbols-outlined text-3xl font-black">add</span>
+        </button>
+
+        <!-- 하단 독(Dock) 네비게이션 -->
+        <nav id="app-nav"
+            class="fixed bottom-0 left-0 right-0 z-50 px-8 pb-10 pt-4 bg-deep-charcoal/90 backdrop-blur-3xl border-t border-white/5 flex items-center justify-between">
+            <button onclick="App.router.nav('assets')"
+                class="nav-item flex flex-col items-center gap-1.5 text-slate-500 transition-all">
+                <span class="material-symbols-outlined text-[26px]">account_balance_wallet</span>
+                <span class="text-[9px] font-black uppercase tracking-tighter">자산</span>
+            </button>
+            <button onclick="App.router.nav('schedule')"
+                class="nav-item flex flex-col items-center gap-1.5 text-slate-500 transition-all">
+                <span class="material-symbols-outlined text-[26px]">calendar_month</span>
+                <span class="text-[9px] font-black uppercase tracking-tighter">일정</span>
+            </button>
+            <div class="w-16"></div> <!-- FAB 공간 -->
+            <button onclick="App.router.nav('stats')"
+                class="nav-item flex flex-col items-center gap-1.5 text-slate-500 transition-all">
+                <span class="material-symbols-outlined text-[26px]">analytics</span>
+                <span class="text-[9px] font-black uppercase tracking-tighter">통계</span>
+            </button>
+            <button id="nav-admin" onclick="App.router.nav('admin')"
+                class="hidden nav-item flex flex-col items-center gap-1.5 text-slate-500 transition-all">
+                <span class="material-symbols-outlined text-[26px] text-admin-gold">admin_panel_settings</span>
+                <span class="text-[9px] font-black uppercase tracking-tighter">어드민</span>
+            </button>
+            <button onclick="App.router.nav('settings')"
+                class="nav-item flex flex-col items-center gap-1.5 text-slate-500 transition-all">
+                <span class="material-symbols-outlined text-[26px]">settings_suggest</span>
+                <span class="text-[9px] font-black uppercase tracking-tighter">설정</span>
+            </button>
+        </nav>
+    </div>
+
+    <!-- 범용 폼 모달 -->
+    <div id="modal-container" class="fixed inset-0 z-[100] hidden items-center justify-center p-6">
+        <div class="absolute inset-0 bg-black/90 backdrop-blur-xl" onclick="App.ui.closeModal()"></div>
+        <div id="modal-content"
+            class="w-full max-w-lg glass-card rounded-[3rem] p-10 relative animate-in zoom-in-95 duration-200">
+            <!-- 동적 폼 삽입 -->
+        </div>
+    </div>
+
+    <!-- 로딩 스피너 -->
+    <div id="loading" class="fixed inset-0 z-[300] hidden items-center justify-center bg-deep-charcoal">
+        <div class="size-12 border-4 border-white/5 border-t-accent-neon rounded-full animate-spin"></div>
+    </div>
+
+    <script>
+        /**
+         * PLATFORM PRO - Supabase 통합 마스터 엔진
+         */
+        const SUPABASE_URL = 'YOUR_SUPABASE_URL'; // 여기에 Supabase URL을 입력하세요
+        const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY'; // 여기에 Supabase Anon Key를 입력하세요
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        const App = {
+            state: {
+                user: null,
+                profile: null,
+                theme: localStorage.getItem('pro_theme') || 'dark',
+                currentPage: 'assets',
+                assets: [],
+                schedules: [],
+                statsRange: 'day',
+                scheduleRange: 'daily',
+                selectedDate: `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}-${String(new Date().getDate()).padStart(2, '0')}`,
+                dailyLimit: Number(localStorage.getItem('pro_daily_limit') || 100000),
+                notifications: localStorage.getItem('pro_notifications') === 'true',
+                users: []
+            },
+
+            // 데이터 입출력 (Supabase 연동)
+            db: {
+                fetchData: async () => {
+                    const sessionData = await supabaseClient.auth.getSession();
+                    if (!sessionData.data.session) return;
+
+                    App.state.user = sessionData.data.session.user;
+                    App.ui.loading(true);
+                    try {
+                        const { data: assets, error: assetErr } = await supabaseClient
+                            .from('assets')
+                            .select('*')
+                            .order('date', { ascending: false });
+
+                        const { data: schedules, error: schedErr } = await supabaseClient
+                            .from('schedules')
+                            .select('*')
+                            .order('date', { ascending: false });
+
+                        if (assetErr) throw assetErr;
+                        if (schedErr) throw schedErr;
+
+                        App.state.assets = assets || [];
+                        App.state.schedules = schedules || [];
+
+                        if (App.state.profile?.role === 'admin') {
+                            const { data: users } = await supabaseClient.from('profiles').select('*');
+                            App.state.users = users || [];
+                        }
+
+                        App.router.refresh();
+                    } catch (err) {
+                        console.error("Data Fetch Error:", err);
+                        App.ui.notify("데이터를 불러오는데 실패했습니다.");
+                    } finally {
+                        App.ui.loading(false);
+                    }
+                },
+                addAsset: async (item) => {
+                    const now = new Date();
+                    const localToday = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+                    const targetDate = item.date || localToday;
+
+                    const { data, error } = await supabaseClient.from('assets').insert([{
+                        user_id: App.state.user.id,
+                        date: targetDate,
+                        type: item.type,
+                        title: item.title,
+                        amount: item.amount,
+                        category: item.category
+                    }]).select();
+
+                    if (error) return App.ui.notify("기록 추가 중 오류 발생");
+
+                    App.state.assets.unshift(data[0]);
+                    App.router.refresh();
+                },
+                addSchedule: async (item) => {
+                    const now = new Date();
+                    const localToday = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+                    const targetDate = item.date || localToday;
+
+                    const { data, error } = await supabaseClient.from('schedules').insert([{
+                        user_id: App.state.user.id,
+                        date: targetDate,
+                        title: item.title,
+                        time: item.time,
+                        category: item.category,
+                        completed: false
+                    }]).select();
+
+                    if (error) return App.ui.notify("일정 추가 중 오류 발생");
+
+                    App.state.schedules.unshift(data[0]);
+                    App.router.refresh();
+                },
+                deleteAsset: async (id) => {
+                    if (!confirm('삭제하시겠습니까?')) return;
+                    const { error } = await supabaseClient.from('assets').delete().eq('id', id);
+                    if (error) return App.ui.notify("삭제 중 오류 발생");
+                    App.state.assets = App.state.assets.filter(a => a.id !== id);
+                    App.router.refresh();
+                },
+                deleteSchedule: async (id) => {
+                    if (!confirm('삭제하시겠습니까?')) return;
+                    const { error } = await supabaseClient.from('schedules').delete().eq('id', id);
+                    if (error) return App.ui.notify("삭제 중 오류 발생");
+                    App.state.schedules = App.state.schedules.filter(s => s.id !== id);
+                    App.router.refresh();
+                },
+                toggleTodo: async (id) => {
+                    const todo = App.state.schedules.find(s => s.id === id);
+                    if (!todo) return;
+                    const { error } = await supabaseClient.from('schedules').update({ completed: !todo.completed }).eq('id', id);
+                    if (error) return App.ui.notify("상태 업데이트 오류");
+                    todo.completed = !todo.completed;
+                    App.router.refresh();
+                }
+            },
+
+            // 유틸리티 엔진 (기존 로직 유지하되 데이터 소스만 변경)
+            utils: {
+                getWeeklyStats: () => {
+                    const data = [];
+                    const days = ['일', '월', '화', '수', '목', '금', '토'];
+                    const now = new Date();
+
+                    for (let i = 6; i >= 0; i--) {
+                        const d = new Date(now);
+                        d.setDate(now.getDate() - i);
+                        const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+                        const dayName = days[d.getDay()];
+
+                        const dayExpenses = App.state.assets
+                            .filter(a => a.type === 'expense' && a.date === dateStr && (App.state.profile?.role === 'admin' || a.user_id === App.state.user?.id))
+                            .reduce((s, a) => s + (Number(a.amount) || 0), 0);
+
+                        const dayIncomes = App.state.assets
+                            .filter(a => a.type === 'income' && a.date === dateStr && (App.state.profile?.role === 'admin' || a.user_id === App.state.user?.id))
+                            .reduce((s, a) => s + (Number(a.amount) || 0), 0);
+
+                        data.push({ dayName, expense: dayExpenses, income: dayIncomes, isToday: i === 0 });
+                    }
+                    return data;
+                },
+                getDailyBudgetStats: () => {
+                    const now = new Date();
+                    const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+                    const dailyLimit = App.state.dailyLimit || 100000;
+
+                    const spent = App.state.assets
+                        .filter(a => a.type === 'expense' && a.date === today && a.user_id === App.state.user?.id)
+                        .reduce((s, a) => s + (Number(a.amount) || 0), 0);
+                    const remaining = Math.max(0, dailyLimit - spent);
+                    const percent = Math.min(100, Math.round((spent / dailyLimit) * 100)) || 0;
+                    return { limit: dailyLimit, spent, remaining, percent };
+                },
+                getCategoryStats: (type = 'expense') => {
+                    const data = App.state.assets.filter(a => a.type === type && (App.state.profile?.role === 'admin' || a.user_id === App.state.user?.id));
+                    const total = data.reduce((s, a) => s + (Number(a.amount) || 0), 0) || 1;
+                    const categories = type === 'income' ? ['급여', '투자', '기타'] : ['식비', '교통', '쇼핑', '주거', '교육', '문화', '기타'];
+
+                    return categories.map(cat => {
+                        const amount = data.filter(a => a.category === cat).reduce((s, a) => s + (Number(a.amount) || 0), 0);
+                        const percent = Math.round((amount / total) * 100) || 0;
+                        return { name: cat, amount, percent };
+                    }).filter(c => c.amount > 0).sort((a, b) => b.amount - a.amount);
+                }
+            },
+
+            // 인증 엔진 (Supabase Auth)
+            auth: {
+                login: async () => {
+                    const email = document.getElementById('auth-email').value;
+                    const pass = document.getElementById('auth-password').value;
+
+                    App.ui.loading(true);
+                    try {
+                        const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password: pass });
+
+                        if (error) {
+                            App.ui.loading(false);
+                            return App.ui.notify(error.message === 'Invalid login credentials' ? '이메일 또는 비밀번호가 올바르지 않습니다.' : error.message);
+                        }
+
+                        App.state.user = data.user;
+                        await App.auth.loadProfile(data.user.id);
+                        await App.db.fetchData();
+
+                        document.getElementById('auth-screen').classList.add('opacity-0', 'pointer-events-none');
+                        document.getElementById('main-app').classList.remove('hidden');
+                        setTimeout(() => {
+                            document.getElementById('main-app').classList.replace('opacity-0', 'opacity-100');
+                            if (App.state.profile?.role === 'admin') document.getElementById('nav-admin').classList.remove('hidden');
+                            App.router.nav('assets');
+                            App.ui.loading(false);
+                            App.ui.notify(`반갑습니다, ${email.split('@')[0]}님!`);
+                        }, 500);
+                    } catch (err) {
+                        App.ui.loading(false);
+                        App.ui.notify("로그인 오류");
+                    }
+                },
+                loadProfile: async (userId) => {
+                    const { data, error } = await supabaseClient.from('profiles').select('*').eq('id', userId).single();
+                    if (!error) App.state.profile = data;
+                },
+                autoLogin: async () => {
+                    const { data: { session } } = await supabaseClient.auth.getSession();
+                    if (session) {
+                        App.state.user = session.user;
+                        await App.auth.loadProfile(session.user.id);
+                        await App.db.fetchData();
+                        document.getElementById('auth-screen').classList.add('hidden');
+                        document.getElementById('main-app').classList.remove('hidden', 'opacity-0');
+                        document.getElementById('main-app').classList.add('opacity-100');
+                        if (App.state.profile?.role === 'admin') document.getElementById('nav-admin').classList.remove('hidden');
+                        App.router.nav('assets');
+                    }
+                },
+                register: async () => {
+                    const email = document.getElementById('auth-email').value;
+                    const password = document.getElementById('auth-password').value;
+                    if (!email || !password) return App.ui.notify('모든 정보를 입력해주세요.');
+
+                    App.ui.loading(true);
+                    const { data, error } = await supabaseClient.auth.signUp({ email, password });
+
+                    if (error) {
+                        App.ui.loading(false);
+                        return App.ui.notify(error.message);
+                    }
+
+                    await supabaseClient.from('profiles').insert([{ id: data.user.id, email: email, role: 'user' }]);
+                    App.ui.loading(false);
+                    App.ui.notify('회원가입 완료! 이메일 인증 후 사용 가능합니다.');
+                    App.ui.toggleAuthMode(false);
+                },
+                logout: async () => {
+                    if (confirm('로그아웃 하시겠습니까?')) {
+                        await supabaseClient.auth.signOut();
+                        location.reload();
+                    }
+                }
+            },
+
+            // 라우팅 엔진
+            router: {
+                nav: (page) => {
+                    App.state.currentPage = page;
+                    const vp = document.getElementById('app-viewport');
+                    const titles = { assets: '자산 대시보드', schedule: '캘린더 및 일정', stats: '통계 분석 리포트', admin: '시스템 관리 도구', settings: '사용자 환경 설정' };
+
+                    document.getElementById('view-title').textContent = page.toUpperCase();
+                    document.getElementById('user-greeting').textContent = titles[page];
+
+                    // 메뉴 활성화 UI
+                    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('nav-active'));
+                    const activeNav = document.querySelector(`.nav-item[onclick*="'${page}'"]`);
+                    if (activeNav) activeNav.classList.add('nav-active');
+
+                    // 화면 전환 효과
+                    vp.style.opacity = '0';
+                    setTimeout(() => {
+                        App.router.render(page, vp);
+                        vp.style.opacity = '1';
+                    }, 150);
+                },
+                refresh: () => App.router.nav(App.state.currentPage),
+                render: (page, container) => {
+                    container.innerHTML = '';
+                    if (page === 'assets') App.views.assets(container);
+                    else if (page === 'schedule') App.views.schedule(container);
+                    else if (page === 'stats') App.views.stats(container);
+                    else if (page === 'admin') App.views.admin(container);
+                    else if (page === 'settings') App.views.settings(container);
+                }
+            },
+
+            // 화면 렌더링 뷰
+            views: {
+                assets: (c) => {
+                    const totalIncome = App.state.assets.filter(a => a.type === 'income').reduce((s, a) => s + Number(a.amount), 0);
+                    const totalExpense = App.state.assets.filter(a => a.type === 'expense').reduce((s, a) => s + Number(a.amount), 0);
+                    const balance = totalIncome - totalExpense;
+
+                    c.innerHTML = `
+                        <div class="animate-slide space-y-10">
+                            <!-- Premium 3D Balance Card -->
+                            <div class="glass-card rounded-[3.5rem] p-10 mb-2 bg-gradient-to-br from-white/[0.08] via-transparent to-premium-blue/5 border border-white/10 shadow-[0_30px_60px_-15px_rgba(0,0,0,0.5)] transform transition-all duration-700 hover:scale-[1.01]">
+                                <div class="flex justify-between items-start mb-10">
+                                    <div>
+                                        <p class="text-[10px] font-black text-theme-muted uppercase tracking-[0.4em] mb-3">Platinum Net Worth</p>
+                                        <h2 class="text-5xl font-black text-theme-base tracking-tighter drop-shadow-2xl">₩${balance.toLocaleString()}</h2>
+                                    </div>
+                                    <div class="size-16 rounded-3xl bg-gradient-to-tr from-accent-neon to-premium-blue p-[1px] shadow-lg">
+                                        <div class="w-full h-full bg-deep-charcoal rounded-[inherit] flex items-center justify-center">
+                                            <span class="material-symbols-outlined text-accent-neon text-3xl">account_balance_wallet</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="grid grid-cols-2 gap-6">
+                                    <div class="glass-card rounded-[2rem] p-6 bg-income-green/5 border-income-green/20 group hover:bg-income-green/10 transition-colors">
+                                        <div class="flex items-center gap-3 mb-3">
+                                            <div class="size-8 rounded-xl bg-income-green/20 flex items-center justify-center text-income-green">
+                                                <span class="material-symbols-outlined text-lg">trending_up</span>
+                                            </div>
+                                            <p class="text-[9px] font-black text-income-green uppercase tracking-widest">Income</p>
+                                        </div>
+                                        <p class="text-2xl font-black text-theme-base">+₩${(totalIncome / 10000).toFixed(1)}M</p>
+                                    </div>
+                                    <div class="glass-card rounded-[2rem] p-6 bg-expense-red/5 border-expense-red/20 group hover:bg-expense-red/10 transition-colors">
+                                        <div class="flex items-center gap-3 mb-3">
+                                            <div class="size-8 rounded-xl bg-expense-red/20 flex items-center justify-center text-expense-red">
+                                                <span class="material-symbols-outlined text-lg">trending_down</span>
+                                            </div>
+                                            <p class="text-[9px] font-black text-expense-red uppercase tracking-widest">Expense</p>
+                                        </div>
+                                        <p class="text-2xl font-black text-theme-base">-₩${(totalExpense / 10000).toFixed(1)}M</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="flex items-center justify-between px-4">
+                                <h3 class="text-xl font-black text-theme-base tracking-tight flex items-center gap-2">
+                                    <span class="material-symbols-outlined text-premium-blue">swap_vertical_circle</span>
+                                    현금 흐름 리스트
+                                </h3>
+                                <div class="flex gap-3">
+                                    <button onclick="App.ui.assetFilter('all')" class="text-[10px] font-black py-2 px-5 glass-card rounded-2xl text-accent-neon border-accent-neon/30 hover:bg-accent-neon/10 transition-all active:scale-95 shadow-lg">ALL</button>
+                                    <button onclick="App.ui.assetFilter('sort')" class="text-[10px] font-black py-2 px-5 glass-card rounded-2xl text-theme-muted border-white/5 hover:bg-white/5 transition-all active:scale-95 shadow-md">SORT</button>
+                                </div>
+                            </div>
+
+                            <div class="space-y-4 px-1">
+                                ${App.state.assets.length === 0 ? `
+                                    </div>
+                                ` : App.state.assets.filter(a => a.userId === App.state.user?.id).map(a => `
+                                    <div class="glass-card rounded-[2.5rem] p-6 flex items-center justify-between group hover:bg-white/[0.04] hover:shadow-2xl transition-all duration-500 border border-white/5 hover:border-premium-blue/30 relative overflow-hidden">
+                                        <div class="absolute inset-0 bg-gradient-to-r ${a.type === 'income' ? 'from-income-green/5' : 'from-expense-red/5'} to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                                        <div class="flex items-center gap-5 relative z-10">
+                                            <div class="size-16 rounded-[1.5rem] ${a.type === 'income' ? 'bg-income-green/10 text-income-green border-income-green/20' : 'bg-expense-red/10 text-expense-red border-expense-red/20'} border flex items-center justify-center shadow-inner group-hover:scale-110 transition-transform">
+                                                <span class="material-symbols-outlined text-3xl scale-110">${a.type === 'income' ? 'account_balance' : 'shopping_bag'}</span>
+                                            </div>
+                                            <div>
+                                                <p class="font-black text-theme-base text-lg tracking-tight group-hover:text-accent-neon transition-colors">${a.title}</p>
+                                                <div class="flex items-center gap-2 mt-1">
+                                                    <span class="px-2 py-0.5 bg-white/5 rounded-md text-[9px] font-black text-theme-muted uppercase tracking-widest">${a.category}</span>
+                                                    <p class="text-[10px] font-bold text-theme-muted opacity-60">${new Date(a.date).toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' })}</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-center gap-4 relative z-10">
+                                            <div class="text-right">
+                                                <p class="font-black text-xl tracking-tighter ${a.type === 'income' ? 'text-income-green' : 'text-expense-red'} group-hover:scale-105 transition-transform">${a.type === 'income' ? '+' : '-'}₩${Number(a.amount).toLocaleString()}</p>
+                                                <p class="text-[9px] font-black text-theme-muted opacity-40 uppercase tracking-widest mt-0.5">Verified Entry</p>
+                                            </div>
+                                            <button onclick="App.db.deleteAsset(${a.id})" class="size-10 rounded-2xl bg-expense-red/5 text-expense-red/40 hover:text-expense-red hover:bg-expense-red/10 transition-all flex items-center justify-center border border-white/5 active:scale-90">
+                                                <span class="material-symbols-outlined text-xl">delete_forever</span>
+                                            </button>
+                                        </div>
+                                    </div>
+                                `).reverse().join('')}
+                            </div>
+                        </div>
+                    `;
+                },
+
+                schedule: (c) => {
+                    const range = App.state.scheduleRange;
+                    const selected = App.state.selectedDate;
+
+                    // 날짜 스트립 생성 (오늘 기준 전후 3일)
+                    const getDates = () => {
+                        const dates = [];
+                        const base = new Date(selected);
+                        for (let i = -3; i <= 3; i++) {
+                            const d = new Date(base);
+                            d.setDate(base.getDate() + i);
+                            dates.push({
+                                full: d.toISOString().split('T')[0],
+                                day: d.getDate(),
+                                name: ['일', '월', '화', '수', '목', '금', '토'][d.getDay()],
+                                isSelected: d.toISOString().split('T')[0] === selected
+                            });
+                        }
+                        return dates;
+                    };
+
+                    c.innerHTML = `
+                        <div class="animate-slide space-y-8">
+                            <div class="flex flex-col">
+                                <h2 class="text-3xl font-black text-theme-base mb-1">${new Date(selected).toLocaleDateString('ko-KR', { month: 'long', day: 'numeric' })}</h2>
+                                <p class="text-accent-neon text-[10px] font-black uppercase tracking-[0.2em] opacity-80">${new Date(selected).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric' })}</p>
+                            </div>
+
+                            <div class="flex gap-3 overflow-x-auto custom-scrollbar pb-2">
+                                ${getDates().map(d => `
+                                    <div onclick="App.state.selectedDate='${d.full}'; App.router.refresh()" class="flex flex-col items-center justify-center min-w-[65px] h-24 rounded-[2rem] cursor-pointer transition-all ${d.isSelected ? 'bg-accent-neon shadow-[0_10px_20px_rgba(0,242,255,0.3)] scale-105' : 'glass-card opacity-60 hover:opacity-100'}">
+                                        <p class="text-[10px] font-black ${d.isSelected ? 'text-deep-charcoal' : 'text-theme-muted'} mb-2 uppercase">${d.name}</p>
+                                        <p class="text-xl font-black ${d.isSelected ? 'text-deep-charcoal' : 'text-theme-base'}">${d.day}</p>
+                                        ${d.isSelected ? '<div class="size-1.5 bg-deep-charcoal rounded-full mt-1"></div>' : ''}
+                                    </div>
+                                `).join('')}
+                            </div>
+
+                            ${range === 'daily' ? `
+                                <section class="glass-card rounded-[3rem] p-8 shadow-2xl border border-white/5 bg-gradient-to-br from-white/[0.03] to-transparent">
+                                    <div class="flex items-center justify-between mb-10">
+                                        <h3 class="text-lg font-black text-theme-base tracking-tight flex items-center gap-3">
+                                            <span class="material-symbols-outlined text-schedule-purple">event_note</span>
+                                            타임라인 일정
+                                        </h3>
+                                        <span class="text-[10px] font-black text-theme-muted uppercase tracking-widest bg-white/5 px-3 py-1 rounded-full">Filter: Active</span>
+                                    </div>
+                                    
+                                    <div class="space-y-8 px-2">
+                                        ${(() => {
+                                const filtered = App.state.schedules.filter(s => s.date === selected && s.userId === App.state.user?.id);
+                                if (filtered.length === 0) return `
+                                                <div class="py-20 text-center opacity-40">
+                                                    <span class="material-symbols-outlined text-5xl mb-4">event_busy</span>
+                                                    <p class="text-xs font-bold uppercase tracking-widest">이 날짜에는 잡힌 일정이 없습니다</p>
+                                                </div>
+                                            `;
+                                return filtered.map(s => `
+                                                <div class="flex gap-6 group">
+                                                    <div class="flex flex-col items-center pt-1">
+                                                        <span class="text-[11px] font-black text-theme-muted group-hover:text-schedule-purple transition-colors uppercase leading-none">${s.time || 'All Day'}</span>
+                                                        <div class="w-0.5 flex-1 bg-white/5 my-4 group-hover:bg-schedule-purple/30 transition-colors"></div>
+                                                    </div>
+                                                    <div class="flex-1 glass-card p-6 rounded-[2rem] border-l-[8px] ${s.completed ? 'border-l-slate-600 bg-white/[0.01]' : 'border-l-schedule-purple bg-schedule-purple/5'} flex items-center justify-between transition-all group-hover:translate-x-2 group-hover:shadow-xl">
+                                                        <div>
+                                                            <h4 class="font-black text-base tracking-tight ${s.completed ? 'text-theme-muted line-through' : 'text-theme-base'} transition-colors">${s.title}</h4>
+                                                            <div class="flex items-center gap-2 mt-2">
+                                                                <span class="px-2 py-0.5 bg-white/5 rounded text-[8px] font-black text-theme-muted uppercase tracking-tighter">${s.category || 'Schedule'}</span>
+                                                                <p class="text-[9px] font-bold text-theme-muted opacity-60 uppercase tracking-widest">${s.completed ? 'Mission Completed' : 'Task in Progress'}</p>
+                                                            </div>
+                                                        </div>
+                                                        <div class="flex items-center gap-2">
+                                                            <button onclick="App.db.toggleTodo(${s.id})" class="size-12 rounded-2xl glass-card flex items-center justify-center group-hover:bg-schedule-purple/20 transition-all border border-white/5 active:scale-90">
+                                                                <span class="material-symbols-outlined text-xl ${s.completed ? 'text-schedule-purple' : 'text-theme-muted'} transition-colors">${s.completed ? 'check_circle' : 'radio_button_unchecked'}</span>
+                                                            </button>
+                                                            <button onclick="App.db.deleteSchedule(${s.id})" class="size-10 rounded-2xl bg-white/5 text-slate-600 hover:text-expense-red flex items-center justify-center transition-all border border-white/5">
+                                                                <span class="material-symbols-outlined text-lg">delete</span>
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            `).join('');
+                            })()}
+                                    </div>
+                                </section>
+                            ` : `
+                                <div class="py-40 text-center glass-card rounded-[3.5rem] border border-dashed border-white/10">
+                                    <span class="material-symbols-outlined text-6xl text-theme-muted mb-6 animate-pulse">analytics</span>
+                                    <p class="text-theme-muted font-black uppercase text-xs tracking-[0.3em]">Insight Engine 가동 중...</p>
+                                </div>
+                            `}
+                        </div>
+                    `;
+                },
+
+                stats: (c) => {
+                    try {
+                        const range = App.state.statsRange;
+                        const weekly = App.utils.getWeeklyStats() || [];
+                        const budget = App.utils.getDailyBudgetStats() || { limit: 100000, spent: 0, remaining: 100000, percent: 0 };
+
+                        // 안전한 maxVal 계산
+                        const weeklyValues = weekly.map(x => Math.max(x.income || 0, x.expense || 0));
+                        const maxVal = Math.max(...weeklyValues, 50000) || 50000;
+
+                        c.innerHTML = `
+                            <div class="animate-slide space-y-10 pb-10">
+                                <!-- Premium Daily Budget Circle -->
+                                <section class="glass-card rounded-[3.5rem] p-10 relative overflow-hidden group border border-white/10 shadow-[0_30px_60px_-15px_rgba(0,0,0,0.4)]">
+                                    <div class="absolute -top-24 -right-24 size-64 bg-accent-neon/5 rounded-full blur-3xl group-hover:bg-accent-neon/10 transition-all duration-700"></div>
+                                    <div class="flex flex-col items-center">
+                                        <div class="relative size-56 flex items-center justify-center">
+                                            <svg class="size-full" viewBox="0 0 224 224">
+                                                <circle class="text-white/5" cx="112" cy="112" fill="transparent" r="100" stroke="currentColor" stroke-width="12"></circle>
+                                                <circle class="text-accent-neon transition-all duration-1000" cx="112" cy="112" fill="transparent" r="100" stroke="currentColor" stroke-dasharray="628" stroke-dashoffset="${628 - (628 * (budget.percent || 0) / 100)}" stroke-linecap="round" stroke-width="12" style="transform: rotate(-90deg); transform-origin: 50% 50%; shadow: 0 0 15px rgba(0,242,255,0.5);"></circle>
+                                            </svg>
+                                            <div class="absolute inset-0 flex flex-col items-center justify-center">
+                                                <p class="text-[10px] font-black text-theme-muted uppercase tracking-[0.3em] mb-1">Spent Today</p>
+                                                <h4 class="text-4xl font-black text-theme-base tracking-[0.1em] ml-2">₩${(budget.spent || 0).toLocaleString()}</h4>
+                                                <span class="mt-2 px-3 py-1 bg-accent-neon/10 text-accent-neon text-[9px] font-black rounded-full">${budget.percent || 0}% Used</span>
+                                            </div>
+                                        </div>
+                                        <div class="w-full mt-10 grid grid-cols-2 gap-6">
+                                            <div class="p-5 rounded-3xl bg-white/[0.02] border border-white/5">
+                                                <p class="text-[9px] text-theme-muted uppercase font-black tracking-widest mb-1">Daily Limit</p>
+                                                <p class="text-lg font-black text-theme-base">₩${(budget.limit || 0).toLocaleString()}</p>
+                                            </div>
+                                            <div class="p-5 rounded-3xl bg-white/[0.02] border border-white/5">
+                                                <p class="text-[9px] text-theme-muted uppercase font-black tracking-widest mb-1">Remaining</p>
+                                                <p class="text-lg font-black text-accent-neon">₩${(budget.remaining || 0).toLocaleString()}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </section>
+
+                                <div class="flex p-1.5 glass-card rounded-[1.5rem] border border-white/5 shadow-inner">
+                                    <button onclick="App.ui.changeRange('stats', 'day')" class="flex-1 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${range === 'day' ? 'tab-btn-active' : 'text-slate-500'}">Daily</button>
+                                    <button onclick="App.ui.changeRange('stats', 'week')" class="flex-1 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${range === 'week' ? 'tab-btn-active' : 'text-slate-500'}">Weekly</button>
+                                    <button onclick="App.ui.changeRange('stats', 'month')" class="flex-1 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${range === 'month' ? 'tab-btn-active' : 'text-slate-500'}">Monthly</button>
+                                </div>
+
+                                <section class="glass-card rounded-[3rem] p-8 bg-gradient-to-br from-white/[0.03] to-transparent border border-white/5 shadow-xl">
+                                    <h3 class="text-center text-[10px] font-black text-theme-muted uppercase tracking-[0.3em] mb-12">통합 수입/지출 트렌드 분석</h3>
+                                    <div class="h-64 flex items-end justify-between gap-3 px-1">
+                                        ${weekly.map(d => `
+                                            <div class="flex-1 flex flex-col items-center gap-3">
+                                                <div class="w-full flex items-end justify-center gap-1 group relative">
+                                                    <div class="w-2.5 bg-income-green/80 rounded-t-sm transition-all duration-700 hover:bg-income-green hover:scale-110" style="height: ${((d.income || 0) / maxVal) * 180 + 2}px">
+                                                        <div class="absolute -top-12 left-1/2 -translate-x-1/2 bg-deep-charcoal border border-white/10 px-2 py-1 rounded text-[8px] font-black text-income-green opacity-0 group-hover:opacity-100 whitespace-nowrap z-20 shadow-2xl">+${(d.income || 0).toLocaleString()}</div>
+                                                    </div>
+                                                    <div class="w-2.5 bg-expense-red/80 rounded-t-sm transition-all duration-700 hover:bg-expense-red hover:scale-110" style="height: ${((d.expense || 0) / maxVal) * 180 + 2}px">
+                                                        <div class="absolute -top-12 left-1/2 -translate-x-1/2 bg-deep-charcoal border border-white/10 px-2 py-1 rounded text-[8px] font-black text-expense-red opacity-0 group-hover:opacity-100 whitespace-nowrap z-20 shadow-2xl">-${(d.expense || 0).toLocaleString()}</div>
+                                                    </div>
+                                                </div>
+                                                <span class="text-[9px] font-black ${d.isToday ? 'text-accent-neon' : 'text-theme-muted'}">${d.dayName}</span>
+                                            </div>
+                                        `).join('')}
+                                    </div>
+                                </section>
+
+                                <div class="space-y-6">
+                                    <div class="glass-card rounded-[2.5rem] p-8 border border-white/5">
+                                        <p class="text-[11px] font-black text-income-green uppercase tracking-widest mb-8 flex items-center gap-2">
+                                            <span class="material-symbols-outlined text-sm">trending_up</span> 수익 포트폴리오
+                                        </p>
+                                        <div class="space-y-6">
+                                            ${App.views.renderCatList('income')}
+                                        </div>
+                                    </div>
+                                    <div class="glass-card rounded-[2.5rem] p-8 border border-white/5">
+                                        <p class="text-[11px] font-black text-expense-red uppercase tracking-widest mb-8 flex items-center gap-2">
+                                            <span class="material-symbols-outlined text-sm">trending_down</span> 지출 포트폴리오
+                                        </p>
+                                        <div class="space-y-6">
+                                            ${App.views.renderCatList('expense')}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    } catch (err) {
+                        console.error("Stats Rendering Error:", err);
+                        c.innerHTML = `<div class="py-20 text-center opacity-50"><p>데이터 엔진 불러오기 오류: ${err.message}</p></div>`;
+                    }
+                },
+                renderCatList: (type) => {
+                    const stats = App.utils.getCategoryStats(type);
+                    if (stats.length === 0) return `<p class="text-center py-10 text-theme-muted text-[10px] font-bold uppercase tracking-widest">분석할 데이터가 없습니다</p>`;
+                    return stats.map((cat, i) => {
+                        const color = type === 'income' ? 'bg-income-green' : 'bg-expense-red';
+                        const opacity = 1 - (i * 0.15);
+                        return `
+                            <div class="space-y-2">
+                                <div class="flex justify-between items-end text-[11px] font-black">
+                                    <span class="text-theme-base uppercase opacity-80">${cat.name}</span>
+                                    <div class="flex items-center gap-3">
+                                        <span class="text-theme-muted">₩${cat.amount.toLocaleString()}</span>
+                                        <span class="text-theme-base">${cat.percent}%</span>
+                                    </div>
+                                </div>
+                                <div class="h-2 w-full bg-slate-500/10 rounded-full overflow-hidden p-[1px]">
+                                    <div class="${color} h-full rounded-full transition-all duration-1000 shadow-sm" style="width: ${cat.percent}%; opacity: ${opacity}"></div>
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+                },
+
+                admin: (c) => {
+                    try {
+                        const assets = App.state.assets || [];
+                        const schedules = App.state.schedules || [];
+                        const users = App.state.users || [];
+
+                        c.innerHTML = `
+                        <div class="animate-slide space-y-8">
+                            <div class="grid grid-cols-2 gap-4">
+                                <div class="glass-card rounded-3xl p-6 bg-admin-gold/5 border-admin-gold/20 shadow-xl">
+                                    <div class="flex items-center gap-2 mb-2">
+                                        <span class="material-symbols-outlined text-[18px] text-admin-gold">group</span>
+                                        <span class="text-[10px] font-bold text-admin-gold uppercase tracking-[0.2em]">Total Users</span>
+                                    </div>
+                                    <p class="text-3xl font-black text-theme-base">${users.length}</p>
+                                </div>
+                                <div class="glass-card rounded-3xl p-6 border border-white/5 bg-accent-neon/5">
+                                    <div class="flex items-center gap-2 mb-2">
+                                        <span class="material-symbols-outlined text-[18px] text-accent-neon">account_balance</span>
+                                        <span class="text-[10px] font-bold text-accent-neon uppercase tracking-[0.2em]">Global Assets</span>
+                                    </div>
+                                    <p class="text-3xl font-black text-theme-base">₩${assets.reduce((s, a) => s + (Number(a.amount) || 0), 0).toLocaleString()}</p>
+                                </div>
+                            </div>
+
+                            <!-- Master Capital Insight -->
+                            <section class="glass-card rounded-[2.5rem] p-8 border border-white/5 bg-gradient-to-br from-white/[0.02] to-transparent">
+                                <h3 class="font-extrabold text-theme-base text-lg mb-8 flex items-center gap-3">
+                                    <span class="material-symbols-outlined text-income-green text-2xl">insights</span>
+                                    마스터 자산 흐름 모니터링
+                                </h3>
+                                <div class="space-y-4">
+                                    ${assets.length === 0 ? '<p class="text-center py-10 text-theme-muted text-[10px] font-bold">기록된 글로벌 내역이 없습니다</p>' : assets.slice(0, 5).map(a => {
+                            const user = users.find(u => u.id === a.user_id);
+                            return `
+                                            <div class="flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/5">
+                                                <div class="flex items-center gap-4">
+                                                    <div class="size-10 rounded-xl ${a.type === 'income' ? 'bg-income-green/10 text-income-green' : 'bg-expense-red/10 text-expense-red'} flex items-center justify-center">
+                                                        <span class="material-symbols-outlined text-xl">${a.type === 'income' ? 'add' : 'remove'}</span>
+                                                    </div>
+                                                    <div>
+                                                        <p class="text-xs font-bold text-theme-base">${a.title}</p>
+                                                        <p class="text-[9px] font-black text-theme-muted uppercase tracking-tighter">${user?.email || 'Unknown User'}</p>
+                                                    </div>
+                                                </div>
+                                                <p class="text-sm font-black ${a.type === 'income' ? 'text-income-green' : 'text-expense-red'}">₩${Number(a.amount).toLocaleString()}</p>
+                                            </div>
+                                        `;
+                        }).join('')}
+                                    <p class="text-center text-[9px] font-black text-theme-muted py-2 tracking-widest uppercase opacity-40">Showing Recent 5 Global Transactions</p>
+                                </div>
+                            </section>
+
+                            <!-- Overall Global Timeline -->
+                            <section class="glass-card rounded-[2.5rem] p-8 border border-white/5">
+                                <h3 class="font-extrabold text-theme-base text-lg mb-8 flex items-center gap-3">
+                                    <span class="material-symbols-outlined text-schedule-purple text-2xl">hub</span>
+                                    전체 사용자 마스터 타임라인
+                                </h3>
+                                <div class="space-y-4">
+                                    ${schedules.length === 0 ? '<p class="text-center py-10 text-theme-muted text-[10px] font-bold">등록된 글로벌 일정이 없습니다</p>' : schedules.slice(0, 8).map(s => {
+                            const user = users.find(u => u.id === s.user_id);
+                            return `
+                                            <div class="flex items-center justify-between p-4 bg-white/5 rounded-2xl border-l-4 ${s.completed ? 'border-l-slate-600' : 'border-l-schedule-purple'}">
+                                                <div>
+                                                    <p class="text-xs font-bold text-theme-base ${s.completed ? 'line-through opacity-50' : ''}">${s.title}</p>
+                                                    <div class="flex items-center gap-2 mt-1">
+                                                        <span class="text-[9px] font-black text-theme-muted uppercase">${s.date} ${s.time}</span>
+                                                        <span class="text-[9px] font-black text-accent-neon uppercase tracking-tighter">[${user?.email?.split('@')[0] || 'Unknown'}]</span>
+                                                    </div>
+                                                </div>
+                                                <span class="material-symbols-outlined text-xl ${s.completed ? 'text-schedule-purple' : 'text-theme-muted opacity-20'}">${s.completed ? 'check_circle' : 'pending'}</span>
+                                            </div>
+                                        `;
+                        }).join('')}
+                                    <p class="text-center text-[9px] font-black text-theme-muted py-2 tracking-widest uppercase opacity-40">Platform Global Schedule Monitoring</p>
+                                </div>
+                            </section>
+
+                            <!-- 기존 회원 관리 -->
+                            <section class="glass-card rounded-[2.5rem] p-8 border border-white/5 shadow-2xl">
+                                <h3 class="font-extrabold text-theme-base text-lg mb-8 flex items-center gap-3">
+                                    <span class="material-symbols-outlined text-admin-gold">admin_panel_settings</span>
+                                    플랫폼 회원 통합 관리
+                                </h3>
+                                
+                                <div class="space-y-2">
+                                    ${users.map(u => `
+                                        <div class="glass-card rounded-3xl p-5 flex items-center justify-between group hover:border-admin-gold/30 hover:bg-white/[0.02] transition-all">
+                                            <div class="flex items-center gap-4">
+                                                <div class="size-11 rounded-2xl bg-white/5 flex items-center justify-center font-black text-xs uppercase text-slate-400 group-hover:text-admin-gold transition-colors border border-white/5">${u.email[0]}</div>
+                                                <div>
+                                                    <p class="font-bold text-theme-base text-sm tracking-tight">${u.email}</p>
+                                                    <p class="text-[10px] font-bold text-theme-muted uppercase mt-0.5">${u.role} · JOINED AT ${new Date(u.created_at).toLocaleDateString()}</p>
+                                                </div>
+                                            </div>
+                                            <button class="px-4 py-2 bg-white/5 hover:bg-admin-gold/20 text-slate-500 hover:text-admin-gold rounded-xl text-[9px] font-black uppercase transition-all shadow-inner">Action</button>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            </section>
+                        </div>
+                    `;
+                    } catch (err) {
+                        console.error("Admin View Error:", err);
+                        c.innerHTML = `<div class="py-20 text-center opacity-50"><p>관리자 엔진 로딩 오류: ${err.message}</p></div>`;
+                    }
+                },
+
+                settings: (c) => {
+                    c.innerHTML = `
+                        <div class="animate-slide space-y-8 pb-32">
+                            <section class="glass-card rounded-[2.5rem] p-8 border border-white/5 shadow-xl bg-gradient-to-br from-white/[0.03] to-transparent">
+                                <div class="flex items-center gap-6 mb-10">
+                                    <div class="size-20 rounded-3xl bg-gradient-to-br from-white/10 to-transparent flex items-center justify-center border border-white/10 shadow-2xl">
+                                        <span class="material-symbols-outlined text-4xl text-theme-base">person</span>
+                                    </div>
+                                    <div>
+                                        <h3 class="text-xl font-black text-theme-base tracking-tight">${App.state.user?.email || 'Guest Member'}</h3>
+                                        <p class="text-xs font-black text-accent-neon tracking-widest uppercase mt-1">Premium Identity Registered</p>
+                                    </div>
+                                </div>
+                                <div class="grid grid-cols-2 gap-4">
+                                    <button class="bg-white/5 border border-white/10 py-5 rounded-3xl text-[10px] font-bold text-theme-base hover:bg-white/10 transition-all uppercase tracking-widest">프로필 수정</button>
+                                    <button onclick="App.auth.logout()" class="bg-expense-red/10 border border-expense-red/20 py-5 rounded-3xl text-[10px] font-bold text-expense-red hover:bg-expense-red/20 transition-all uppercase tracking-widest">보안 로그아웃</button>
+                                </div>
+                            </section>
+
+                            <article class="glass-card rounded-[2.5rem] p-8 border border-white/5">
+                                <h4 class="text-[10px] font-black text-theme-muted uppercase tracking-[0.3em] mb-8">Personalization & Financial Goal</h4>
+                                <div class="space-y-6">
+                                    <div class="flex items-center justify-between p-5 bg-white/5 rounded-3xl border border-white/5">
+                                        <div>
+                                            <p class="text-sm font-bold text-theme-base">스마트 일정 알림</p>
+                                            <p class="text-[10px] text-theme-muted font-black tracking-wide mt-1 uppercase">Intelligent Push Notifications</p>
+                                        </div>
+                                        <div onclick="App.ui.toggleNotifications()" class="w-16 h-8 rounded-full bg-${App.state.notifications ? 'accent-neon' : 'white/10'}/20 p-1 flex cursor-pointer transition-all border border-${App.state.notifications ? 'accent-neon' : 'white/10'}/30">
+                                            <div class="size-6 rounded-full bg-${App.state.notifications ? 'accent-neon' : 'slate-600'} shadow-${App.state.notifications ? '[0_0_15px_rgba(0,242,255,0.5)]' : 'none'} transition-all transform ${App.state.notifications ? 'translate-x-8' : ''}"></div>
+                                        </div>
+                                    </div>
+
+                                    <div class="flex items-center justify-between p-5 bg-white/5 rounded-3xl border border-white/5">
+                                        <div>
+                                            <p class="text-sm font-bold text-theme-base">다크 모드 인터페이스</p>
+                                            <p class="text-[10px] text-theme-muted font-black tracking-wide mt-1 uppercase">OLED Optimized UI System</p>
+                                        </div>
+                                        <div onclick="App.ui.toggleTheme()" class="w-16 h-8 rounded-full bg-accent-neon/20 p-1 flex cursor-pointer transition-all border border-accent-neon/30">
+                                            <div class="size-6 rounded-full bg-accent-neon shadow-[0_0_15px_rgba(0,242,255,0.5)] transition-all transform ${App.state.theme === 'dark' ? 'translate-x-8' : ''}"></div>
+                                        </div>
+                                    </div>
+
+                                    <!-- 일일 한도 설정 -->
+                                    <div class="p-6 bg-white/5 rounded-[2rem] border border-white/5 space-y-4">
+                                        <div>
+                                            <p class="text-sm font-bold text-theme-base">일일 자산 한도 설정</p>
+                                            <p class="text-[10px] text-theme-muted font-black tracking-wide mt-1 uppercase">Daily Asset Target Management</p>
+                                        </div>
+                                        <div class="relative">
+                                            <input id="set-daily-limit" type="number" value="${App.state.dailyLimit}" 
+                                                class="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-theme-base font-black outline-none focus:border-accent-neon/50 transition-all"
+                                                onchange="App.ui.updateDailyLimit(this.value)">
+                                            <span class="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-black text-theme-muted">KRW (₩)</span>
+                                        </div>
+                                        <p class="text-[9px] text-accent-neon/70 font-bold px-1">* 통계 화면의 원형 프로그레스 바 기준값이 됩니다.</p>
+                                    </div>
+                                </div>
+                            </article>
+                        </div>
+                    `;
+                }
+            },
+
+            // UI 헬퍼
+            ui: {
+                loading: (show) => document.getElementById('loading').classList.toggle('hidden', !show),
+                notify: (msg) => alert(msg),
+                toggleFab: (force) => {
+                    const layer = document.getElementById('fab-layer');
+                    const icon = document.getElementById('fab-icon');
+                    const options = document.getElementById('fab-options');
+                    const show = typeof force === 'boolean' ? force : layer.classList.contains('hidden');
+
+                    if (show) {
+                        const currentPage = App.state.currentPage.trim().toLowerCase();
+                        const btns = {
+                            income: `<button onclick="App.ui.openForm('income')" class="flex items-center gap-4 group"><span class="text-xs font-bold text-income-green">수익 등록</span><div class="size-14 bg-income-green/20 border border-income-green/30 rounded-2xl flex items-center justify-center text-income-green shadow-xl hover:scale-105 transition-all"><span class="material-symbols-outlined">add_card</span></div></button>`,
+                            expense: `<button onclick="App.ui.openForm('expense')" class="flex items-center gap-4 group"><span class="text-xs font-bold text-expense-red">지출 등록</span><div class="size-14 bg-expense-red/20 border border-expense-red/30 rounded-2xl flex items-center justify-center text-expense-red shadow-xl hover:scale-105 transition-all"><span class="material-symbols-outlined">shopping_cart</span></div></button>`,
+                            schedule: `<button onclick="App.ui.openForm('schedule')" class="flex items-center gap-4 group"><span class="text-xs font-bold text-schedule-purple">일정 등록</span><div class="size-14 bg-schedule-purple/20 border border-schedule-purple/30 rounded-2xl flex items-center justify-center text-schedule-purple shadow-xl hover:scale-105 transition-all"><span class="material-symbols-outlined">event_note</span></div></button>`
+                        };
+
+                        if (currentPage === 'schedule') options.innerHTML = btns.schedule;
+                        else if (currentPage === 'assets') options.innerHTML = btns.income + btns.expense;
+                        else options.innerHTML = btns.income + btns.expense + btns.schedule;
+                    }
+
+                    layer.classList.toggle('hidden', !show);
+                    icon.textContent = show ? 'close' : 'add';
+                    document.getElementById('fab-main').classList.toggle('rotate-45', show);
+                },
+                updateDailyLimit: (val) => {
+                    App.state.dailyLimit = Number(val) || 100000;
+                    App.db.saveSettings();
+                    App.ui.notify('지출 한도가 성공적으로 업데이트되었습니다.');
+                },
+                toggleNotifications: () => {
+                    if (!App.state.notifications) {
+                        Notification.requestPermission().then(permission => {
+                            if (permission === 'granted') {
+                                App.state.notifications = true;
+                                App.db.saveSettings();
+                                App.router.refresh();
+                                new Notification('Platinum Pro', { body: '스마트 알림 시스템이 활성화되었습니다.' });
+                            } else {
+                                App.ui.notify('알림 권한이 거부되었습니다. 브라우저 설정을 확인해주세요.');
+                            }
+                        });
+                    } else {
+                        App.state.notifications = false;
+                        App.db.save();
+                        App.router.refresh();
+                    }
+                },
+                changeRange: (type, range) => {
+                    if (type === 'stats') App.state.statsRange = range;
+                    else if (type === 'schedule') App.state.scheduleRange = range;
+                    App.router.refresh();
+                },
+                openForm: (type) => {
+                    App.ui.toggleFab(false);
+                    const modal = document.getElementById('modal-container');
+                    const content = document.getElementById('modal-content');
+
+                    const meta = {
+                        income: { title: '수익 내역 추가', color: 'text-income-green', icon: 'add_card' },
+                        expense: { title: '지출 내역 추가', color: 'text-expense-red', icon: 'payments' },
+                        schedule: { title: '새 일정 잡기', color: 'text-schedule-purple', icon: 'event_available' }
+                    }[type] || { title: '정보 추가', color: 'text-white', icon: 'add' };
+
+                    content.innerHTML = `
+                        <div class="flex items-center justify-between mb-10">
+                            <div class="flex items-center gap-4">
+                                <div class="size-12 rounded-2xl bg-white/5 flex items-center justify-center ${meta.color} border border-white/10 shadow-lg">
+                                    <span class="material-symbols-outlined text-2xl">${meta.icon}</span>
+                                </div>
+                                <h3 class="text-2xl font-black text-theme-base tracking-tight">${meta.title}</h3>
+                            </div>
+                            <button onclick="App.ui.closeModal()" class="size-10 rounded-full glass-card text-theme-muted hover:text-theme-base transition-all flex items-center justify-center border border-white/5"><span class="material-symbols-outlined text-xl">close</span></button>
+                        </div>
+                        <form id="pro-form" onsubmit="App.ui.handleSubmit(event, '${type}')" class="space-y-6">
+                            <div class="space-y-2">
+                                <label class="text-[10px] font-black text-theme-muted uppercase tracking-[0.2em] pl-1">상세 항목 설명</label>
+                                <input id="f-title" type="text" required class="w-full bg-white/5 border border-white/10 rounded-2xl p-5 text-theme-base outline-none focus:border-accent-neon/50 focus:bg-white/10 transition-all font-bold placeholder:text-slate-600" placeholder="상세 내용을 입력하세요">
+                            </div>
+                            
+                            <!-- 날짜 선택 필드를 눈에 띄게 단독 배치 -->
+                            <div class="space-y-2">
+                                <label class="text-[10px] font-black text-theme-muted uppercase tracking-[0.2em] pl-1">기록 날짜 (반드시 확인)</label>
+                                <input id="f-date" type="date" required value="${App.state.selectedDate}" class="w-full bg-white/5 border border-white/10 rounded-2xl p-5 text-theme-base outline-none focus:border-accent-neon/50 focus:bg-white/10 transition-all font-bold">
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-4">
+                                <div class="space-y-2">
+                                    <label class="text-[10px] font-black text-theme-muted uppercase tracking-[0.2em] pl-1">${type === 'schedule' ? '정확한 시간' : '정확한 금액 (₩)'}</label>
+                                    <input id="f-val" type="${type === 'schedule' ? 'time' : 'number'}" required class="w-full bg-white/5 border border-white/10 rounded-2xl p-5 text-theme-base outline-none focus:border-accent-neon/50 focus:bg-white/10 transition-all font-bold" placeholder="${type === 'schedule' ? '00:00' : '0'}">
+                                </div>
+                                <div class="space-y-2">
+                                    <label class="text-[10px] font-black text-theme-muted uppercase tracking-[0.2em] pl-1">카테고리</label>
+                                    <select id="f-cat" class="w-full bg-white/10 border border-white/10 rounded-2xl p-5 text-theme-base outline-none appearance-none font-bold">
+                                        ${(type === 'schedule' ? ['Business', 'Personal', 'Meeting', 'Finance', 'Life'] : (type === 'income' ? ['급여', '투자', '기타', '배당금'] : ['식비', '교통', '쇼핑', '주거', '교육', '문화', '통신', '경조사'])).map(v => `<option value="${v}" class="bg-deep-charcoal">${v}</option>`).join('')}
+                                    </select>
+                                </div>
+                            </div>
+
+                            <button type="submit" class="w-full bg-gradient-to-r from-accent-neon to-premium-blue text-deep-charcoal font-black py-5 rounded-3xl shadow-xl mt-8 active:scale-[0.98] transition-all text-sm uppercase tracking-widest border border-white/10">데이터 시스템 동기화 실행</button>
+                        </form>
+                    `;
+                    modal.classList.replace('hidden', 'flex');
+                },
+                closeModal: () => {
+                    document.getElementById('modal-container').classList.replace('flex', 'hidden');
+                    document.getElementById('modal-content').innerHTML = '';
+                },
+                handleSubmit: (e, type) => {
+                    e.preventDefault();
+                    const title = document.getElementById('f-title').value;
+                    const date = document.getElementById('f-date').value;
+                    const val = document.getElementById('f-val').value;
+                    const cat = document.getElementById('f-cat').value;
+
+                    if (type === 'schedule') {
+                        App.db.addSchedule({ title, date, time: val, category: cat });
+                    } else {
+                        App.db.addAsset({ type, title, date, amount: val, category: cat });
+                    }
+
+                    App.ui.closeModal();
+                    App.ui.notify('데이터가 지능형 엔진에 성공적으로 동기화되었습니다.');
+                }
+            }
+        };
+
+        // 초기 실행
+        window.onload = () => {
+            console.log("Platform Pro - Supabase Engine Activated");
+            App.ui.applyTheme();
+            App.auth.autoLogin();
+
+            setInterval(() => {
+                if (!App.state.notifications || !App.state.user) return;
+
+                const now = new Date();
+                const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+                const curTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:00`;
+
+                App.state.schedules.forEach(s => {
+                    if (s.date === today && s.time === curTime && !s.completed && !s.notified) {
+                        new Notification('📌 일정 알림', {
+                            body: `현재 예정된 일정이 있습니다: ${s.title}`,
+                            icon: 'https://cdn-icons-png.flaticon.com/512/1791/1791330.png'
+                        });
+                        s.notified = true;
+                    }
+                });
+            }, 60000);
+        };
+
+        // 추가 UI 헬퍼 구현
+        App.ui.toggleAuthMode = (isRegister) => {
+            document.getElementById('auth-buttons').classList.toggle('hidden', isRegister);
+            document.getElementById('register-buttons').classList.toggle('hidden', !isRegister);
+        };
+        App.ui.toggleTheme = () => {
+            App.state.theme = App.state.theme === 'dark' ? 'light' : 'dark';
+            App.db.save();
+            App.ui.applyTheme();
+            if (App.state.currentPage === 'settings') App.router.refresh();
+        };
+        App.ui.applyTheme = () => {
+            const isDark = App.state.theme === 'dark';
+            document.documentElement.classList.toggle('dark', isDark);
+
+            const bgClass = isDark ? 'bg-deep-charcoal text-slate-100' : 'bg-[#F8FAFC] text-slate-900';
+            document.body.className = `min-h-screen ${bgClass} antialiased overflow-x-hidden transition-all duration-700`;
+
+            const root = document.documentElement;
+            if (isDark) {
+                root.style.setProperty('--text-base', '#ffffff');
+                root.style.setProperty('--text-muted', '#64748b');
+                root.style.setProperty('--card-bg', 'rgba(255, 255, 255, 0.05)');
+            } else {
+                root.style.setProperty('--text-base', '#1E293B');
+                root.style.setProperty('--text-muted', '#64748B');
+                root.style.setProperty('--card-bg', 'rgba(255, 255, 255, 0.8)');
+            }
+        };
+
+        // ALL / SORT 기능 실제 구현
+        App.ui.assetFilter = (type) => {
+            if (type === 'all') {
+                App.state.assets.sort((a, b) => b.id - a.id);
+                App.ui.notify('최신순으로 전체 내역이 정렬되었습니다.');
+            } else if (type === 'sort') {
+                App.state.assets.sort((a, b) => b.amount - a.amount);
+                App.ui.notify('금액이 큰 순서대로 정렬되었습니다.');
+            }
+            App.router.refresh();
+        };
+    </script>
+</body>
+
+</html>
