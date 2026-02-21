@@ -408,15 +408,12 @@
                                 App.state.user = data.user;
                                 await App.auth.loadProfile(data.user.id);
                             } else {
-                                if (confirm(`접속 제한: ${error.message}\n임시 체험 모드로 즉시 접속하시겠습니까?`)) {
-                                    App.state.user = { id: 'temp-user', email };
-                                } else {
-                                    App.ui.loading(false);
-                                    return;
-                                }
+                                // 인증 오류 발생 시 무조건 체험 모드로 자동 전환 (더 강력하게!)
+                                App.ui.notify("실제 계정 인증 대기 중 - 체험 모드로 자동 접속합니다.");
+                                App.state.user = { id: 'temp-' + Date.now(), email };
                             }
                         } else {
-                            App.state.user = { id: 'demo-user', email };
+                            App.state.user = { id: 'demo-' + Date.now(), email };
                         }
 
                         await App.db.fetchData();
@@ -426,11 +423,11 @@
                             document.getElementById('main-app').classList.replace('opacity-0', 'opacity-100');
                             App.router.nav('assets');
                             App.ui.loading(false);
-                            App.ui.notify(`반갑습니다, ${email.split('@')[0]}님!`);
+                            App.ui.notify(`반갑습니다, ${email.split('@')[0]}님! (최종 패치 v1.2 적용됨)`);
                         }, 500);
                     } catch (err) {
                         App.ui.loading(false);
-                        App.ui.notify("로그인 처리 중 오류 발생");
+                        App.ui.notify("접속 처리 중 오류 발생 - 잠시 후 다시 시도해 주세요.");
                     }
                 },
                 loadProfile: async (userId) => {
