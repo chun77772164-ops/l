@@ -454,15 +454,18 @@
                 },
                 loadProfile: async (userId) => {
                     if (!supabaseClient) return;
-                    const { data, error } = await supabaseClient.from('profiles').select('*').eq('id', userId).single();
-                    if (!error && data) {
-                        App.state.profile = data;
-                    } else {
-                        // 프로필이 없는 유저는 즉시 생성 (이미 있어도 무시)
-                        const email = App.state.user?.email || '';
-                        await supabaseClient.from('profiles').insert([{ id: userId, email: email, role: 'user' }]).catch(() => { });
-                        // 기본 프로필 상태 설정
-                        App.state.profile = { id: userId, email, role: 'user' };
+                    try {
+                        const { data, error } = await supabaseClient.from('profiles').select('*').eq('id', userId).single();
+                        if (!error && data) {
+                            App.state.profile = data;
+                        } else {
+                            // 프로필이 없는 유저는 즉시 생성 (이미 있어도 무시)
+                            const email = App.state.user?.email || '';
+                            await supabaseClient.from('profiles').insert([{ id: userId, email: email, role: 'user' }]);
+                            App.state.profile = { id: userId, email, role: 'user' };
+                        }
+                    } catch (e) {
+                        console.error("Profile Load Error:", e);
                     }
                 },
                 autoLogin: async () => {
