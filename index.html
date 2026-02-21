@@ -209,9 +209,19 @@
         /**
          * PLATFORM PRO - Supabase 통합 마스터 엔진
          */
-        const SUPABASE_URL = 'YOUR_SUPABASE_URL'; // 여기에 Supabase URL을 입력하세요
-        const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY'; // 여기에 Supabase Anon Key를 입력하세요
-        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        const SUPABASE_URL = 'YOUR_SUPABASE_URL';
+        const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
+
+        let supabaseClient = null;
+        try {
+            if (SUPABASE_URL !== 'YOUR_SUPABASE_URL' && SUPABASE_ANON_KEY !== 'YOUR_SUPABASE_ANON_KEY') {
+                supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            } else {
+                console.warn("Supabase credentials are not set. Database features will be limited.");
+            }
+        } catch (e) {
+            console.error("Supabase Initialization Error:", e);
+        }
 
         const App = {
             state: {
@@ -232,6 +242,7 @@
             // 데이터 입출력 (Supabase 연동)
             db: {
                 fetchData: async () => {
+                    if (!supabaseClient) return;
                     const sessionData = await supabaseClient.auth.getSession();
                     if (!sessionData.data.session) return;
 
@@ -272,6 +283,7 @@
                     const localToday = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
                     const targetDate = item.date || localToday;
 
+                    if (!supabaseClient) return App.ui.notify("Supabase 연결이 설정되지 않았습니다.");
                     const { data, error } = await supabaseClient.from('assets').insert([{
                         user_id: App.state.user.id,
                         date: targetDate,
@@ -291,6 +303,7 @@
                     const localToday = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
                     const targetDate = item.date || localToday;
 
+                    if (!supabaseClient) return App.ui.notify("Supabase 연결이 설정되지 않았습니다.");
                     const { data, error } = await supabaseClient.from('schedules').insert([{
                         user_id: App.state.user.id,
                         date: targetDate,
@@ -307,6 +320,7 @@
                 },
                 deleteAsset: async (id) => {
                     if (!confirm('삭제하시겠습니까?')) return;
+                    if (!supabaseClient) return App.ui.notify("Supabase 연결이 설정되지 않았습니다.");
                     const { error } = await supabaseClient.from('assets').delete().eq('id', id);
                     if (error) return App.ui.notify("삭제 중 오류 발생");
                     App.state.assets = App.state.assets.filter(a => a.id !== id);
@@ -314,6 +328,7 @@
                 },
                 deleteSchedule: async (id) => {
                     if (!confirm('삭제하시겠습니까?')) return;
+                    if (!supabaseClient) return App.ui.notify("Supabase 연결이 설정되지 않았습니다.");
                     const { error } = await supabaseClient.from('schedules').delete().eq('id', id);
                     if (error) return App.ui.notify("삭제 중 오류 발생");
                     App.state.schedules = App.state.schedules.filter(s => s.id !== id);
@@ -322,10 +337,20 @@
                 toggleTodo: async (id) => {
                     const todo = App.state.schedules.find(s => s.id === id);
                     if (!todo) return;
+                    if (!supabaseClient) return App.ui.notify("Supabase 연결이 설정되지 않았습니다.");
                     const { error } = await supabaseClient.from('schedules').update({ completed: !todo.completed }).eq('id', id);
                     if (error) return App.ui.notify("상태 업데이트 오류");
                     todo.completed = !todo.completed;
                     App.router.refresh();
+                },
+                save: () => {
+                    localStorage.setItem('pro_assets', JSON.stringify(App.state.assets));
+                    localStorage.setItem('pro_schedules', JSON.stringify(App.state.schedules));
+                },
+                saveSettings: () => {
+                    localStorage.setItem('pro_theme', App.state.theme);
+                    localStorage.setItem('pro_daily_limit', App.state.dailyLimit);
+                    localStorage.setItem('pro_notifications', App.state.notifications);
                 }
             },
 
@@ -387,6 +412,7 @@
 
                     App.ui.loading(true);
                     try {
+                        if (!supabaseClient) return App.ui.notify("Supabase가 연결되지 않았습니다. 설정을 확인하세요.");
                         const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password: pass });
 
                         if (error) {
@@ -417,6 +443,7 @@
                     if (!error) App.state.profile = data;
                 },
                 autoLogin: async () => {
+                    if (!supabaseClient) return;
                     const { data: { session } } = await supabaseClient.auth.getSession();
                     if (session) {
                         App.state.user = session.user;
