@@ -209,8 +209,8 @@
         /**
          * PLATFORM PRO - Supabase 통합 마스터 엔진
          */
-        const SUPABASE_URL = 'YOUR_SUPABASE_URL';
-        const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
+        const SUPABASE_URL = 'https://ywnepgyybfqqzstaufjm.supabase.co';
+        const SUPABASE_ANON_KEY = 'sb_publishable_Yc8fA3AkemTobh0Yr6m5Dw_G2C81yfp';
 
         let supabaseClient = null;
         try {
@@ -242,38 +242,27 @@
             // 데이터 입출력 (Supabase 연동)
             db: {
                 fetchData: async () => {
-                    if (!supabaseClient) return;
-                    const sessionData = await supabaseClient.auth.getSession();
-                    if (!sessionData.data.session) return;
-
-                    App.state.user = sessionData.data.session.user;
                     App.ui.loading(true);
                     try {
-                        const { data: assets, error: assetErr } = await supabaseClient
-                            .from('assets')
-                            .select('*')
-                            .order('date', { ascending: false });
+                        // 기본적으로 로컬 데이터 로드
+                        const localAssets = JSON.parse(localStorage.getItem('pro_assets') || '[]');
+                        const localSchedules = JSON.parse(localStorage.getItem('pro_schedules') || '[]');
 
-                        const { data: schedules, error: schedErr } = await supabaseClient
-                            .from('schedules')
-                            .select('*')
-                            .order('date', { ascending: false });
+                        if (supabaseClient && App.state.user) {
+                            const { data: assets, error: assetErr } = await supabaseClient.from('assets').select('*').order('date', { ascending: false });
+                            const { data: schedules, error: schedErr } = await supabaseClient.from('schedules').select('*').order('date', { ascending: false });
+                            const { data: profile } = await supabaseClient.from('profiles').select('*').eq('id', App.state.user.id).single();
 
-                        if (assetErr) throw assetErr;
-                        if (schedErr) throw schedErr;
-
-                        App.state.assets = assets || [];
-                        App.state.schedules = schedules || [];
-
-                        if (App.state.profile?.role === 'admin') {
-                            const { data: users } = await supabaseClient.from('profiles').select('*');
-                            App.state.users = users || [];
+                            if (!assetErr) App.state.assets = assets || [];
+                            if (!schedErr) App.state.schedules = schedules || [];
+                            if (profile) App.state.profile = profile;
+                        } else {
+                            App.state.assets = localAssets;
+                            App.state.schedules = localSchedules;
                         }
-
                         App.router.refresh();
                     } catch (err) {
                         console.error("Data Fetch Error:", err);
-                        App.ui.notify("데이터를 불러오는데 실패했습니다.");
                     } finally {
                         App.ui.loading(false);
                     }
@@ -409,51 +398,40 @@
                 login: async () => {
                     const email = document.getElementById('auth-email').value;
                     const pass = document.getElementById('auth-password').value;
+                    if (!email || !pass) return App.ui.notify("이메일과 비밀번호를 입력해주세요.");
 
                     App.ui.loading(true);
                     try {
-                        if (!supabaseClient) return App.ui.notify("Supabase가 연결되지 않았습니다. 설정을 확인하세요.");
-                        const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password: pass });
-
-                        if (error) {
-                            App.ui.loading(false);
-                            return App.ui.notify(error.message === 'Invalid login credentials' ? '이메일 또는 비밀번호가 올바르지 않습니다.' : error.message);
+                        if (supabaseClient) {
+                            const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password: pass });
+                            if (!error) {
+                                App.state.user = data.user;
+                                await App.auth.loadProfile(data.user.id);
+                            } else {
+                                // DB 연결은 되어있으나 계정이 없는 경우 등 안내 (임시 데모 모드 허용)
+                                if (confirm(`인증 실패: ${error.message}\n임시 체험 모드로 접속하시겠습니까?`)) {
+                                    App.state.user = { id: 'temp-user', email };
+                                } else {
+                                    return;
+                                }
+                            }
+                        } else {
+                            // DB 연결 안 된 경우 무조건 접속 허용 (데모 모드)
+                            App.state.user = { id: 'demo-user', email };
                         }
 
-                        App.state.user = data.user;
-                        await App.auth.loadProfile(data.user.id);
                         await App.db.fetchData();
-
                         document.getElementById('auth-screen').classList.add('opacity-0', 'pointer-events-none');
                         document.getElementById('main-app').classList.remove('hidden');
                         setTimeout(() => {
                             document.getElementById('main-app').classList.replace('opacity-0', 'opacity-100');
-                            if (App.state.profile?.role === 'admin') document.getElementById('nav-admin').classList.remove('hidden');
                             App.router.nav('assets');
                             App.ui.loading(false);
                             App.ui.notify(`반갑습니다, ${email.split('@')[0]}님!`);
                         }, 500);
                     } catch (err) {
                         App.ui.loading(false);
-                        App.ui.notify("로그인 오류");
-                    }
-                },
-                loadProfile: async (userId) => {
-                    const { data, error } = await supabaseClient.from('profiles').select('*').eq('id', userId).single();
-                    if (!error) App.state.profile = data;
-                },
-                autoLogin: async () => {
-                    if (!supabaseClient) return;
-                    const { data: { session } } = await supabaseClient.auth.getSession();
-                    if (session) {
-                        App.state.user = session.user;
-                        await App.auth.loadProfile(session.user.id);
-                        await App.db.fetchData();
-                        document.getElementById('auth-screen').classList.add('hidden');
-                        document.getElementById('main-app').classList.remove('hidden', 'opacity-0');
-                        document.getElementById('main-app').classList.add('opacity-100');
-                        if (App.state.profile?.role === 'admin') document.getElementById('nav-admin').classList.remove('hidden');
-                        App.router.nav('assets');
+                        App.ui.notify("로그인 처리 중 오류 발생");
                     }
                 },
                 register: async () => {
@@ -462,17 +440,21 @@
                     if (!email || !password) return App.ui.notify('모든 정보를 입력해주세요.');
 
                     App.ui.loading(true);
-                    const { data, error } = await supabaseClient.auth.signUp({ email, password });
-
-                    if (error) {
+                    try {
+                        if (supabaseClient) {
+                            const { data, error } = await supabaseClient.auth.signUp({ email, password });
+                            if (error) throw error;
+                            await supabaseClient.from('profiles').insert([{ id: data.user.id, email: email, role: 'user' }]);
+                            App.ui.notify('회원가입 완료! 이메일 인증 후 사용 가능합니다.');
+                        } else {
+                            App.ui.notify('DB 미연결 상태입니다. 로컬 모드로 즉시 접속합니다.');
+                            App.auth.login(); // 바로 로그인 시도
+                        }
+                    } catch (err) {
+                        App.ui.notify(`회원가입 오류: ${err.message}`);
+                    } finally {
                         App.ui.loading(false);
-                        return App.ui.notify(error.message);
                     }
-
-                    await supabaseClient.from('profiles').insert([{ id: data.user.id, email: email, role: 'user' }]);
-                    App.ui.loading(false);
-                    App.ui.notify('회원가입 완료! 이메일 인증 후 사용 가능합니다.');
-                    App.ui.toggleAuthMode(false);
                 },
                 logout: async () => {
                     if (confirm('로그아웃 하시겠습니까?')) {
