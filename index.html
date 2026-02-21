@@ -147,17 +147,14 @@
             <!-- 동적 컨텐츠 렌더링 영역 -->
         </main>
 
-        <!-- 유니버셜 플로팅 버튼 -->
+        <!-- 유니버셜 플로팅 버튼 레이어 -->
         <div id="fab-layer" class="fixed inset-0 z-40 hidden">
             <div class="absolute inset-0 bg-deep-charcoal/90 backdrop-blur-sm" onclick="App.ui.toggleFab(false)"></div>
-            <div id="fab-options" class="absolute bottom-40 right-6 flex flex-col items-end gap-4">
+            <div id="fab-options"
+                class="absolute bottom-40 left-1/2 -translate-x-1/2 flex flex-col items-center gap-4 text-center">
                 <!-- 하단 스크립트에서 동적으로 주입됨 -->
             </div>
         </div>
-        <button id="fab-main" onclick="App.ui.toggleFab()"
-            class="fixed bottom-32 right-6 z-50 size-16 bg-gradient-to-br from-accent-neon to-premium-blue text-deep-charcoal rounded-[2rem] shadow-[0_15px_35px_rgba(0,242,255,0.4)] flex items-center justify-center active:scale-90 transition-all">
-            <span id="fab-icon" class="material-symbols-outlined text-3xl font-black">add</span>
-        </button>
 
         <!-- 하단 독(Dock) 네비게이션 -->
         <nav id="app-nav"
@@ -172,7 +169,15 @@
                 <span class="material-symbols-outlined text-[26px]">calendar_month</span>
                 <span class="text-[9px] font-black uppercase tracking-tighter">일정</span>
             </button>
-            <div class="w-16"></div> <!-- FAB 공간 -->
+
+            <!-- 센터 플러스 버튼 (FAB) -->
+            <div class="relative -top-8 -mx-4">
+                <button id="fab-main" onclick="App.ui.toggleFab()"
+                    class="size-16 bg-gradient-to-br from-accent-neon to-premium-blue text-deep-charcoal rounded-[2rem] shadow-[0_15px_35px_rgba(0,242,255,0.4)] flex items-center justify-center active:scale-90 transition-all">
+                    <span id="fab-icon" class="material-symbols-outlined text-3xl font-black">add</span>
+                </button>
+            </div>
+
             <button onclick="App.router.nav('stats')"
                 class="nav-item flex flex-col items-center gap-1.5 text-slate-500 transition-all">
                 <span class="material-symbols-outlined text-[26px]">analytics</span>
@@ -408,12 +413,21 @@
                                 App.state.user = data.user;
                                 await App.auth.loadProfile(data.user.id);
                             } else {
-                                // 인증 오류 발생 시 무조건 체험 모드로 자동 전환 (더 강력하게!)
-                                App.ui.notify("실제 계정 인증 대기 중 - 체험 모드로 자동 접속합니다.");
-                                App.state.user = { id: 'temp-' + Date.now(), email };
+                                // 인증 오류 발생 시 상세 안내 (체험 모드 대신 진짜 오류 해결 유도)
+                                if (error.message.includes('confirmed')) {
+                                    App.ui.notify("이메일 인증 대기 중입니다. Supabase에서 'Confirm Email' 설정을 꺼주세요!");
+                                } else if (error.message.includes('Invalid login')) {
+                                    App.ui.notify("이메일 또는 비밀번호가 틀렸습니다.");
+                                } else {
+                                    App.ui.notify("로그인 실패: " + error.message);
+                                }
+                                App.ui.loading(false);
+                                return;
                             }
                         } else {
-                            App.state.user = { id: 'demo-' + Date.now(), email };
+                            App.ui.notify("DB 연결 정보가 없습니다. index.html 상단의 Key 설정을 확인해주세요.");
+                            App.ui.loading(false);
+                            return;
                         }
 
                         await App.db.fetchData();
@@ -423,11 +437,11 @@
                             document.getElementById('main-app').classList.replace('opacity-0', 'opacity-100');
                             App.router.nav('assets');
                             App.ui.loading(false);
-                            App.ui.notify(`반갑습니다, ${email.split('@')[0]}님! (최종 패치 v1.2 적용됨)`);
+                            App.ui.notify(`반갑습니다, ${email.split('@')[0]}님!`);
                         }, 500);
                     } catch (err) {
                         App.ui.loading(false);
-                        App.ui.notify("접속 처리 중 오류 발생 - 잠시 후 다시 시도해 주세요.");
+                        App.ui.notify("연결 오류 발생: 서버 응답을 확인해주세요.");
                     }
                 },
                 loadProfile: async (userId) => {
